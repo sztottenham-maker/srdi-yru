@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base target="_top"> 
+    <title>YRU SRDI - Wrap Up & Next Move</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- ฟอนต์ไทย Sarabun -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,300;0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Sarabun', sans-serif; background-color: #f1f5f9; }
+        .theme-green-bg { background-color: #0d5c34; }
+        .theme-green-text { color: #0d5c34; }
+        .theme-green-border { border-color: #0d5c34; }
+        .theme-yellow-bg { background-color: #facc15; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spin { animation: spin 1s linear infinite; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <!-- หน้าจอกำลังโหลด -->
+    <div id="loading-overlay" class="fixed inset-0 bg-emerald-950/95 z-[60] flex flex-col items-center justify-center text-white">
+        <i class="fa-solid fa-circle-notch text-4xl text-yellow-300 spin mb-4"></i>
+        <p class="font-bold text-sm">กำลังเชื่อมต่อฐานข้อมูล Google Sheet...</p>
+        <p class="text-xs text-emerald-300 mt-1">โปรดรอสักครู่ กำลังโหลดข้อมูล</p>
+    </div>
+
+    <!-- แถบเมนูด้านบน -->
+    <nav class="theme-green-bg text-white shadow-lg sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row md:justify-between py-3 md:h-16 md:py-0 items-center gap-3">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 theme-yellow-bg rounded-full flex items-center justify-center text-emerald-950 font-bold text-xl shadow-md border-2 border-white">&gt;</div>
+                    <div>
+                        <span class="font-bold text-lg block leading-tight">YRU SRDI</span>
+                        <span class="text-xs text-yellow-300">สถาบันวิจัยและพัฒนา มหาวิทยาลัยราชภัฏยะลา</span>
+                    </div>
+                </div>
+                <div class="flex bg-emerald-950/60 p-1.5 rounded-xl border border-emerald-800 w-full md:w-auto overflow-x-auto justify-between">
+                    <button id="btn-form-view" onclick="switchView('form')" class="px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition duration-200 bg-yellow-400 text-emerald-950 shadow flex items-center space-x-1.5 flex-1 md:flex-initial justify-center whitespace-nowrap">
+                        <i class="fa-solid fa-pen-to-square"></i><span>1. ส่งโจทย์ชุมชน</span>
+                    </button>
+                    <button id="btn-dashboard-view" onclick="switchView('dashboard')" class="px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition duration-200 text-slate-300 hover:text-white flex items-center space-x-1.5 flex-1 md:flex-initial justify-center whitespace-nowrap">
+                        <i class="fa-solid fa-chart-line"></i><span>2. วิเคราะห์เรียลไทม์</span>
+                    </button>
+                    <button id="btn-matching-view" onclick="switchView('matching')" class="px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition duration-200 text-slate-300 hover:text-white flex items-center space-x-1.5 flex-1 md:flex-initial justify-center whitespace-nowrap">
+                        <i class="fa-solid fa-handshake-angle"></i><span>3. บอร์ดจับคู่ (Matching)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- แบนเนอร์หัวเรื่อง -->
+    <header class="bg-gradient-to-r from-emerald-900 via-emerald-800 to-teal-800 text-white py-5 px-4 shadow-inner text-center">
+        <h1 class="text-xl md:text-2xl lg:text-3xl font-extrabold tracking-wide">Wrap Up & Next Move</h1>
+        <p class="text-emerald-100 mt-1 text-xs md:text-sm max-w-2xl mx-auto">ขับเคลื่อนงานบริการวิชาการสู่การพัฒนาท้องถิ่นอย่างยั่งยืน สถาบันวิจัยและพัฒนา มรย.</p>
+        <span class="inline-block mt-2 bg-emerald-950/80 text-[10px] text-emerald-300 px-3 py-1 rounded-full border border-emerald-700/60">
+            <i class="fa-solid fa-database mr-1"></i> ฐานข้อมูล: Google Sheets (เรียลไทม์)
+        </span>
+    </header>
+
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 md:py-8">
+
+        <!-- ==================== หน้า 1: ฟอร์มโหวต ==================== -->
+        <section id="view-form" class="space-y-6">
+
+            <!-- แผงสถานะ 'คุณโหวตแล้ว' (กันโหวตซ้ำ) -->
+            <div id="voted-panel" class="hidden bg-white rounded-2xl shadow-xl border border-emerald-200 max-w-2xl mx-auto p-6 text-center">
+                <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-3xl mx-auto mb-3"><i class="fa-solid fa-circle-check"></i></div>
+                <h2 class="text-lg font-bold text-slate-800">ขอบคุณ! บันทึกการโหวตของท่านแล้ว</h2>
+                <p class="text-sm text-slate-500 mt-1">ประเด็นที่ท่านเลือก:</p>
+                <div id="voted-topic-badge" class="inline-flex items-center gap-2 mt-2 px-4 py-2 rounded-xl font-bold text-sm"></div>
+                <div class="flex flex-col sm:flex-row gap-2 justify-center mt-5">
+                    <button onclick="switchView('dashboard')" class="px-5 py-2.5 theme-green-bg hover:bg-emerald-800 text-white text-sm font-bold rounded-xl shadow transition flex items-center justify-center gap-2"><i class="fa-solid fa-chart-line"></i> ดูผลโหวตเรียลไทม์</button>
+                    <button onclick="startChangeVote()" class="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-bold rounded-xl transition flex items-center justify-center gap-2"><i class="fa-solid fa-pen"></i> เปลี่ยนคำตอบ</button>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-4">ระบบจำการโหวตไว้ในเบราว์เซอร์ของเครื่องนี้ เพื่อป้องกันการโหวตซ้ำ</p>
+            </div>
+
+            <div id="survey-card" class="bg-white rounded-2xl shadow-xl border border-slate-200/80 overflow-hidden max-w-2xl mx-auto">
+                <div class="theme-green-bg p-5 text-white flex items-center space-x-3.5">
+                    <div class="p-2 bg-emerald-950/50 rounded-lg text-yellow-300"><i class="fa-solid fa-clipboard-question text-xl"></i></div>
+                    <div>
+                        <h2 class="text-base md:text-lg font-bold">แบบสำรวจความต้องการเร่งด่วนที่สุดในพื้นที่</h2>
+                        <p class="text-xs text-emerald-200">เพื่อใช้ประกอบการจับคู่งานบริการวิชาการ มรย.</p>
+                    </div>
+                </div>
+
+                <form id="surveyForm" onsubmit="handleFormSubmit(event)" class="p-5 md:p-6 space-y-6">
+                    <div class="space-y-4">
+                        <h3 class="text-slate-800 font-bold border-b border-slate-100 pb-2 text-sm flex items-center">
+                            <span class="w-3 h-3 rounded-full theme-yellow-bg mr-2 inline-block"></span>ข้อมูลทั่วไปผู้ร่วมให้ข้อมูล
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">ชื่อ-นามสกุล / ตัวแทนกลุ่ม <span class="text-rose-500">*</span></label>
+                                <input type="text" id="reporter_name" required class="w-full px-3.5 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 outline-none text-sm transition" placeholder="ระบุชื่อผู้ติดต่อ">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-600 mb-1">ชื่อหน่วยงาน / ชุมชน / พื้นที่ <span class="text-rose-500">*</span></label>
+                                <input type="text" id="agency" required class="w-full px-3.5 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 outline-none text-sm transition" placeholder="เช่น วิสาหกิจชุมชน ต.อัยเยอร์เวง">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">เบอร์โทรศัพท์ หรือ ช่องทางติดต่อ <span class="text-rose-500">*</span></label>
+                            <input type="text" id="contact" required class="w-full px-3.5 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 outline-none text-sm transition" placeholder="เช่น 081-234-xxxx">
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="border-b border-slate-100 pb-2">
+                            <h3 class="text-slate-800 font-bold text-sm flex items-center">
+                                <span class="w-3 h-3 rounded-full theme-yellow-bg mr-2 inline-block"></span>ประเด็นที่เร่งด่วนที่สุดในพื้นที่ของท่าน <span class="text-rose-500 ml-1 font-normal text-xs">(เลือกได้เพียง 1 ประเด็นเท่านั้น)</span>
+                            </h3>
+                        </div>
+
+                        <div class="space-y-2.5">
+                            <label class="flex items-center p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 hover:border-blue-300 transition duration-150 group">
+                                <input type="radio" name="priority_topic" value="อาชีพและรายได้ชุมชน" required class="h-5 w-5 text-emerald-700 focus:ring-emerald-600 border-slate-300">
+                                <div class="ml-4 flex items-center flex-1">
+                                    <div class="w-9 h-9 bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center mr-3 group-hover:scale-105 transition"><i class="fa-solid fa-coins text-sm"></i></div>
+                                    <span class="text-slate-700 font-bold text-sm">อาชีพและรายได้ชุมชน</span>
+                                </div>
+                            </label>
+                            <label class="flex items-center p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 hover:border-amber-300 transition duration-150 group">
+                                <input type="radio" name="priority_topic" value="การท่องเที่ยวและอัตลักษณ์ท้องถิ่น" class="h-5 w-5 text-emerald-700 focus:ring-emerald-600 border-slate-300">
+                                <div class="ml-4 flex items-center flex-1">
+                                    <div class="w-9 h-9 bg-amber-100 text-amber-700 rounded-lg flex items-center justify-center mr-3 group-hover:scale-105 transition"><i class="fa-solid fa-map-location-dot text-sm"></i></div>
+                                    <span class="text-slate-700 font-bold text-sm">การท่องเที่ยวและอัตลักษณ์ท้องถิ่น</span>
+                                </div>
+                            </label>
+                            <label class="flex items-center p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 hover:border-rose-300 transition duration-150 group">
+                                <input type="radio" name="priority_topic" value="สุขภาพ ผู้สูงอายุ และคุณภาพชีวิต" class="h-5 w-5 text-emerald-700 focus:ring-emerald-600 border-slate-300">
+                                <div class="ml-4 flex items-center flex-1">
+                                    <div class="w-9 h-9 bg-rose-100 text-rose-700 rounded-lg flex items-center justify-center mr-3 group-hover:scale-105 transition"><i class="fa-solid fa-heart-pulse text-sm"></i></div>
+                                    <span class="text-slate-700 font-bold text-sm">สุขภาพ ผู้สูงอายุ และคุณภาพชีวิต</span>
+                                </div>
+                            </label>
+                            <label class="flex items-center p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 hover:border-emerald-300 transition duration-150 group">
+                                <input type="radio" name="priority_topic" value="สิ่งแวดล้อม น้ำ ขยะ และภูมิอากาศ" class="h-5 w-5 text-emerald-700 focus:ring-emerald-600 border-slate-300">
+                                <div class="ml-4 flex items-center flex-1">
+                                    <div class="w-9 h-9 bg-emerald-100 text-emerald-700 rounded-lg flex items-center justify-center mr-3 group-hover:scale-105 transition"><i class="fa-solid fa-leaf text-sm"></i></div>
+                                    <span class="text-slate-700 font-bold text-sm">สิ่งแวดล้อม น้ำ ขยะ และภูมิอากาศ</span>
+                                </div>
+                            </label>
+                            <label class="flex items-center p-3.5 rounded-xl border border-slate-200 cursor-pointer hover:bg-slate-50 hover:border-indigo-300 transition duration-150 group">
+                                <input type="radio" name="priority_topic" value="เด็ก เยาวชน การศึกษา และทักษะอาชีพ" class="h-5 w-5 text-emerald-700 focus:ring-emerald-600 border-slate-300">
+                                <div class="ml-4 flex items-center flex-1">
+                                    <div class="w-9 h-9 bg-indigo-100 text-indigo-700 rounded-lg flex items-center justify-center mr-3 group-hover:scale-105 transition"><i class="fa-solid fa-graduation-cap text-sm"></i></div>
+                                    <span class="text-slate-700 font-bold text-sm">เด็ก เยาวชน การศึกษา และทักษะอาชีพ</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- หมายเหตุสั้น ๆ -->
+                    <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3.5 rounded-xl text-xs flex items-start">
+                        <i class="fa-solid fa-circle-info mr-2 mt-0.5 text-emerald-600"></i>
+                        <span>เลือกประเด็นที่เร่งด่วนที่สุดเพียง <strong>1 ข้อ</strong> แล้วกดส่งได้เลย ใช้เวลาไม่ถึงหนึ่งนาที — ผลโหวตจะแสดงบนหน้าจอแบบเรียลไทม์</span>
+                    </div>
+
+                    <button type="submit" id="submit-btn" class="w-full py-3.5 px-4 theme-green-bg hover:bg-emerald-800 text-white font-bold rounded-xl shadow-lg transition duration-200 flex items-center justify-center space-x-2 disabled:opacity-60">
+                        <i id="submit-btn-icon" class="fa-solid fa-paper-plane"></i>
+                        <span id="submit-btn-text">ส่งข้อมูลเพื่อเข้าคลังวิเคราะห์</span>
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- ==================== หน้า 2: แดชบอร์ดเรียลไทม์ ==================== -->
+        <section id="view-dashboard" class="space-y-6 hidden">
+            <div class="bg-gradient-to-r from-blue-900 to-indigo-900 text-white p-4 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-3 shadow">
+                <div class="flex items-center space-x-3 text-xs md:text-sm">
+                    <span class="flex h-3 w-3 relative">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-yellow-400"></span>
+                    </span>
+                    <p class="font-medium"><strong>หน้าจอนำเสนอ (Realtime View):</strong> สำหรับฉายขึ้นจอ แสดงผลโหวตของพื้นที่แบบสด ๆ</p>
+                </div>
+                <div class="flex items-center gap-2 text-[11px]">
+                    <span class="text-indigo-200"><i class="fa-solid fa-clock-rotate-left mr-1"></i> อัปเดตล่าสุด: <span id="last-updated" class="font-bold text-white">-</span></span>
+                    <button onclick="manualRefresh()" class="bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg font-bold transition flex items-center space-x-1.5">
+                        <i id="refresh-icon" class="fa-solid fa-rotate text-yellow-300"></i><span>รีเฟรชเดี๋ยวนี้</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center space-x-4">
+                    <div class="p-3 bg-blue-100 text-blue-700 rounded-xl"><i class="fa-solid fa-file-signature text-xl"></i></div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 font-bold block uppercase">จำนวนผู้ร่วมโหวต</span>
+                        <span id="stat-total" class="text-2xl font-bold text-slate-800">0</span>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center space-x-4">
+                    <div class="p-3 bg-amber-100 text-amber-700 rounded-xl"><i class="fa-solid fa-fire-flame-curved text-xl"></i></div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 font-bold block uppercase">ประเด็นเร่งด่วนสูงสุด</span>
+                        <span id="stat-top" class="text-sm font-bold text-slate-800 truncate max-w-[150px] block">-</span>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center space-x-4">
+                    <div class="p-3 bg-indigo-100 text-indigo-700 rounded-xl"><i class="fa-solid fa-city text-xl"></i></div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 font-bold block uppercase">พื้นที่ที่ให้ความร่วมมือ</span>
+                        <span id="stat-agencies" class="text-2xl font-bold text-slate-800">0</span>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex items-center space-x-4">
+                    <div class="p-3 bg-emerald-100 text-emerald-700 rounded-xl"><i class="fa-solid fa-circle-check text-xl"></i></div>
+                    <div>
+                        <span class="text-[10px] text-slate-400 font-bold block uppercase">จำนวนการจับคู่สำเร็จ</span>
+                        <span id="stat-matched" class="text-2xl font-bold text-slate-800">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 lg:col-span-2 flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-sm md:text-base flex items-center">
+                            <i class="fa-solid fa-chart-column mr-2 text-emerald-700"></i> จำนวนเสียงโหวตของแต่ละประเด็น (Priority Distribution)
+                        </h3>
+                        <p class="text-[11px] text-slate-400 mt-1">เปรียบเทียบจำนวนเสียงโหวตของปัญหาในพื้นที่ทั้ง 5 ด้านที่ตอบสดเข้ามา</p>
+                    </div>
+                    <div class="h-64 mt-4 relative"><canvas id="priorityChart"></canvas></div>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col">
+                    <h3 class="font-bold text-slate-800 text-sm md:text-base flex items-center"><i class="fa-solid fa-chart-pie mr-2 text-emerald-700"></i> สัดส่วนการโหวต (%)</h3>
+                    <p class="text-[11px] text-slate-400 mt-1">เปอร์เซ็นต์ของแต่ละประเด็นเทียบยอดรวมทั้งหมด</p>
+                    <div class="flex-grow flex items-center justify-center mt-3 relative" style="min-height:230px;"><canvas id="donutChart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- แถบอันดับสด (Live Ranking) -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-sm md:text-base flex items-center"><i class="fa-solid fa-ranking-star mr-2 text-amber-500"></i> อันดับประเด็นเร่งด่วน (Live Ranking)</h3>
+                        <p class="text-[11px] text-slate-400 mt-0.5">เรียงตามจำนวนเสียงโหวตมากไปน้อย อัปเดตอัตโนมัติทุก 15 วินาที</p>
+                    </div>
+                    <button onclick="openResultsReveal()" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-sm transition flex items-center justify-center space-x-2 flex-shrink-0">
+                        <i class="fa-solid fa-expand"></i><span>เฉลยผลแบบเต็มจอ (ปิดเวที)</span>
+                    </button>
+                </div>
+                <div id="ranking-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3"></div>
+            </div>
+
+            <!-- ฟีดผู้ร่วมโหวต -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-4 bg-slate-50 border-b border-slate-200/60 flex justify-between items-center">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-sm flex items-center"><i class="fa-solid fa-list-check text-rose-500 mr-2 animate-pulse"></i> รายชื่อพื้นที่ที่ร่วมโหวต (เรียงจากล่าสุด)</h3>
+                        <p class="text-[10px] text-slate-400 mt-0.5">แสดงพื้นที่/ผู้แทนที่ส่งโหวตเข้ามา พร้อมประเด็นที่เลือกและช่องทางติดต่อ</p>
+                    </div>
+                </div>
+                <div class="divide-y divide-slate-100 max-h-[500px] overflow-y-auto" id="dashboard-feed-list"></div>
+            </div>
+        </section>
+
+        <!-- ==================== หน้า 3: บอร์ดจับคู่ (ล็อก PIN) ==================== -->
+        <section id="view-matching" class="space-y-6 hidden">
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex items-center space-x-3">
+                    <div id="pin-status-icon" class="w-10 h-10 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center text-lg"><i class="fa-solid fa-lock"></i></div>
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-sm flex items-center">สถานะการแก้ไขบอร์ดจับคู่ (Matchmaker Authorization)</h3>
+                        <p id="pin-status-text" class="text-xs text-rose-600 font-semibold mt-0.5">กรุณาปลดล็อกเพื่อสิทธิ์สำหรับคณะกรรมการในการบันทึกข้อมูลจับคู่</p>
+                    </div>
+                </div>
+                <div>
+                    <button id="btn-pin-auth" onclick="togglePinUnlock()" class="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-sm transition flex items-center space-x-2">
+                        <i id="btn-pin-icon" class="fa-solid fa-key"></i><span id="btn-pin-text">กรอก PIN เพื่อปลดล็อก</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="border-l-4 theme-green-border pl-3">
+                    <h3 class="font-bold text-slate-800 text-base">บอร์ดผลการจับคู่งานบริการวิชาการรายประเด็น (Academic Service Matching Matrix)</h3>
+                    <p class="text-xs text-slate-400 mt-0.5">วิเคราะห์ คัดแยก และเสนอแนวทางจากปัญหาของชุมชนแบ่งเป็นประเด็นเฉพาะตัว</p>
+                </div>
+                <div class="grid grid-cols-1 gap-6" id="matching-board-grid"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 transform translate-y-20 opacity-0 transition-all duration-300 bg-emerald-900 text-white px-5 py-3.5 rounded-xl shadow-2xl border border-emerald-700 flex items-center space-x-3 z-50">
+        <div class="w-8 h-8 bg-emerald-100 text-emerald-800 rounded-full flex items-center justify-center"><i class="fa-solid fa-check"></i></div>
+        <div>
+            <h4 class="font-bold text-sm" id="toast-title">สำเร็จ!</h4>
+            <p class="text-xs text-emerald-200" id="toast-msg">บันทึกข้อมูลเรียบร้อยแล้ว</p>
+        </div>
+    </div>
+
+    <!-- Modal PIN -->
+    <div id="pin-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full overflow-hidden border border-slate-100">
+            <div class="theme-green-bg p-4 text-white text-center">
+                <i class="fa-solid fa-shield-halved text-3xl text-yellow-300 mb-2"></i>
+                <h3 class="font-bold text-sm">การตรวจสอบสิทธิ์ระดับคณะกรรมการ</h3>
+                <p class="text-[10px] text-emerald-200">กรุณาระบุรหัสผ่านเพื่อแก้ไขและจัดทำคู่มือจับคู่</p>
+            </div>
+            <div class="p-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1.5 text-center">รหัสความปลอดภัย PIN (6 หลัก)</label>
+                    <input type="password" id="input-pin-code" maxlength="6" onkeydown="if(event.key==='Enter') verifyPin()" class="w-full text-center text-xl tracking-widest font-extrabold px-4 py-2 border-2 border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 outline-none transition" placeholder="******">
+                    <span id="pin-error-msg" class="text-[10px] text-rose-500 font-bold block text-center mt-1.5 hidden">รหัส PIN ไม่ถูกต้อง โปรดตรวจสอบรหัสอีกครั้ง</span>
+                </div>
+                <div class="flex space-x-2 pt-2">
+                    <button onclick="closePinModal()" class="w-1/2 py-2.5 text-xs font-semibold text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-xl transition">ยกเลิก</button>
+                    <button id="btn-verify-pin" onclick="verifyPin()" class="w-1/2 py-2.5 text-xs font-bold bg-yellow-400 hover:bg-yellow-500 text-emerald-950 rounded-xl shadow transition">ยืนยันรหัสผ่าน</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal แก้ไขการจับคู่ + ทำเนียบผู้เลือกประเด็น -->
+    <div id="match-editor-modal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-md z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-5xl w-full h-[90vh] md:h-[80vh] flex flex-col overflow-hidden border border-slate-200">
+            <div class="theme-green-bg p-4 text-white flex justify-between items-center shadow-md">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-emerald-950/50 text-yellow-300"><i class="fa-solid fa-handshake-angle"></i></div>
+                    <div>
+                        <span class="text-[10px] text-yellow-300 font-bold uppercase tracking-wider block">เครื่องมือสำหรับคณะกรรมการ / ประเมินผลร่วม</span>
+                        <h3 id="modal-topic-title" class="font-bold text-sm md:text-base"></h3>
+                    </div>
+                </div>
+                <button onclick="closeMatchEditorModal()" class="text-white hover:text-yellow-300 transition text-2xl px-2"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="flex-grow grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
+                <div class="lg:col-span-5 p-5 border-b lg:border-b-0 lg:border-r border-slate-200 overflow-y-auto space-y-4 bg-slate-50">
+                    <div class="bg-emerald-950 text-emerald-200 p-3.5 rounded-xl border border-emerald-800 text-xs leading-relaxed space-y-1.5 shadow-inner">
+                        <span class="font-bold text-yellow-400 block flex items-center"><i class="fa-solid fa-circle-check mr-1.5"></i>คำแนะนำในการกรอกข้อมูล</span>
+                        <p>ดูรายชื่อพื้นที่/ผู้ที่เลือกประเด็นนี้ได้จากแถบทางขวา เพื่อใช้ติดต่อประสานงาน จากนั้นจึงระบุแนวทางบริการวิชาการและหน่วยงานที่เหมาะสมต่อการลงพื้นที่ร่วมกัน</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">1. แนวทางบริการวิชาการที่เชื่อมโยงได้ <span class="text-rose-500">*</span></label>
+                            <textarea id="edit-academic-solution" rows="5" class="w-full px-3.5 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 outline-none text-xs transition font-medium" placeholder="เช่น ส่งเสริมเทคโนโลยีวิศวกรรมแปรรูป, คอร์สอบรมยกระดับมาตรฐานอาหาร โดยสาขาคหกรรมและสาขาบริหารธุรกิจ..."></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1">2. พื้นที่/หน่วยงานที่สนใจ <span class="text-rose-500">*</span></label>
+                            <textarea id="edit-interested-areas" rows="4" class="w-full px-3.5 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-600 focus:border-emerald-600 outline-none text-xs transition font-medium" placeholder="เช่น วิสาหกิจชุมชนน้ำพริก ต.ธารโต อ.ธารโต จ.ยะลา, อบต.แม่หวาด, กลุ่มสตรีเป้าหมาย..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-7 flex flex-col overflow-hidden bg-slate-100">
+                    <div class="p-3.5 bg-slate-200/80 border-b border-slate-200 flex justify-between items-center flex-shrink-0">
+                        <span class="font-bold text-slate-700 text-xs flex items-center"><i class="fa-solid fa-address-book mr-1.5 text-emerald-700"></i> พื้นที่/ผู้ที่เลือกประเด็นนี้ (สำหรับติดต่อเพื่อจับคู่)</span>
+                        <span id="modal-preview-count" class="bg-emerald-900 text-white font-bold text-[10px] px-2.5 py-0.5 rounded-full"></span>
+                    </div>
+                    <div id="modal-preview-list-container" class="flex-grow p-4 overflow-y-auto space-y-3.5"></div>
+                </div>
+            </div>
+
+            <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end space-x-2 flex-shrink-0 shadow-inner">
+                <button onclick="closeMatchEditorModal()" class="px-5 py-2 text-xs font-semibold text-slate-500 hover:text-slate-800 bg-white border border-slate-300 rounded-xl shadow-sm transition">ยกเลิก</button>
+                <button id="btn-save-match" onclick="saveMatch()" class="px-6 py-2 text-xs font-bold theme-green-bg hover:bg-emerald-800 text-white rounded-xl shadow transition flex items-center space-x-2 disabled:opacity-60">
+                    <i id="save-match-icon" class="fa-solid fa-floppy-disk"></i><span id="save-match-text">บันทึกแผนจับคู่</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay เฉลยผลปิดเวที -->
+    <div id="results-modal" class="fixed inset-0 bg-emerald-950 z-[55] hidden flex flex-col items-center justify-center p-6 text-white overflow-y-auto">
+        <button onclick="closeResultsReveal()" class="absolute top-4 right-5 text-white/70 hover:text-white text-3xl"><i class="fa-solid fa-xmark"></i></button>
+        <div class="text-center mb-6">
+            <span class="text-yellow-300 text-xs font-bold tracking-widest uppercase">Wrap Up &amp; Next Move</span>
+            <h2 class="text-2xl md:text-4xl font-extrabold mt-1">ผลโหวตประเด็นเร่งด่วนของพื้นที่</h2>
+            <p id="results-subtitle" class="text-emerald-200 text-sm mt-2"></p>
+        </div>
+        <div id="results-content" class="w-full max-w-3xl space-y-3"></div>
+    </div>
+
+    <footer class="bg-slate-950 text-slate-500 py-6 text-center text-[11px] border-t border-slate-900 mt-10">
+        <div class="max-w-7xl mx-auto px-4">
+            <p class="text-slate-400 font-bold mb-1">© 2026 สถาบันวิจัยและพัฒนา มหาวิทยาลัยราชภัฏยะลา (YRU SRDI)</p>
+            <p class="leading-relaxed text-slate-600">YRU Matchmaking Platform — เครื่องมือจัดเก็บข้อมูลสัมมนาเชิงวิชาการ ตามเป้าหมายขับเคลื่อนยุทธศาสตร์พัฒนาเขตพื้นที่ภาคใต้ตอนล่าง</p>
+        </div>
+    </footer>
+
+    <script>
+        /* ===== ตั้งค่าเชื่อมต่อระบบหลังบ้าน (API) ===== */
+        // นำลิงก์ที่ได้จากการ Deploy Google Apps Script (ลิงก์ที่ลงท้ายด้วย /exec) มาวางในเครื่องหมายคำพูดด้านล่างนี้
+        const BACKEND_URL = "https://script.google.com/macros/s/AKfycbz0UNl9TK8KAG8tFD__6AMUkNL08bJ-YmkJ-Tlc7zU8Kl0EUPUaWBvh6PJJJpggs7Iz/exec";
+
+        // ฟังก์ชันส่งข้อมูลติดต่อหลังบ้านผ่านระบบอินเทอร์เน็ตสาธารณะ (แก้ปัญหาบัญชี Google ซ้อนกัน)
+        function callBackend(action, data, onSuccess, onFailure) {
+            fetch(BACKEND_URL, {
+                method: 'POST',
+                mode: 'cors',
+                body: JSON.stringify({ action: action, data: data }),
+                headers: { 'Content-Type': 'text/plain' }
+            })
+            .then(response => response.json())
+            .then(res => {
+                if (res.success) onSuccess(res.data);
+                else onFailure(res.error || 'เกิดข้อผิดพลาดภายในระบบ');
+            })
+            .catch(err => onFailure('ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้: ' + err.message));
+        }
+
+        /* ===== สถานะของแอป ===== */
+        let database = [];
+        let matchingDatabase = {};
+        let chartInstance = null;
+        let donutInstance = null;
+        let isUnlocked = false;
+        let authedPin = null;
+        let selectedTopicToEdit = null;
+        let isEditorOpen = false;
+        let autoRefreshTimer = null;
+        let myVote = null;          
+        let isChangingVote = false;
+
+        const VOTE_STORAGE_KEY = 'yru_srdi_my_vote_v1';
+
+        const CORE_TOPICS = [
+            'อาชีพและรายได้ชุมชน',
+            'การท่องเที่ยวและอัตลักษณ์ท้องถิ่น',
+            'สุขภาพ ผู้สูงอายุ และคุณภาพชีวิต',
+            'สิ่งแวดล้อม น้ำ ขยะ และภูมิอากาศ',
+            'เด็ก เยาวชน การศึกษา และทักษะอาชีพ'
+        ];
+        const TOPIC_SHORT   = ['อาชีพและรายได้', 'การท่องเที่ยว', 'สุขภาพ&คุณภาพชีวิต', 'สิ่งแวดล้อม&ขยะ', 'การศึกษา&เด็ก'];
+        const TOPIC_COLORS  = ['rgba(59,130,246,0.85)', 'rgba(245,158,11,0.85)', 'rgba(244,63,94,0.85)', 'rgba(16,185,129,0.85)', 'rgba(99,102,241,0.85)'];
+        const TOPIC_BORDERS = ['rgb(37,99,235)', 'rgb(217,119,6)', 'rgb(225,29,72)', 'rgb(5,150,105)', 'rgb(79,70,229)'];
+        const TOPIC_STYLE = {
+            'อาชีพและรายได้ชุมชน':            { icon: 'fa-coins',            bg: 'bg-blue-50',    text: 'text-blue-700',    border: 'border-blue-200',    cardBorder: 'border-blue-500',    header: 'bg-blue-50 text-blue-900' },
+            'การท่องเที่ยวและอัตลักษณ์ท้องถิ่น': { icon: 'fa-map-location-dot', bg: 'bg-amber-50',   text: 'text-amber-700',   border: 'border-amber-200',   cardBorder: 'border-amber-500',   header: 'bg-amber-50 text-amber-900' },
+            'สุขภาพ ผู้สูงอายุ และคุณภาพชีวิต':  { icon: 'fa-heart-pulse',      bg: 'bg-rose-50',    text: 'text-rose-700',    border: 'border-rose-200',    cardBorder: 'border-rose-500',    header: 'bg-rose-50 text-rose-900' },
+            'สิ่งแวดล้อม น้ำ ขยะ และภูมิอากาศ':  { icon: 'fa-leaf',             bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200', cardBorder: 'border-emerald-500', header: 'bg-emerald-50 text-emerald-900' },
+            'เด็ก เยาวชน การศึกษา และทักษะอาชีพ': { icon: 'fa-graduation-cap',   bg: 'bg-indigo-50',  text: 'text-indigo-700',  border: 'border-indigo-200',  cardBorder: 'border-indigo-500',  header: 'bg-indigo-50 text-indigo-900' }
+        };
+
+        /* ===== เริ่มต้น ===== */
+        window.addEventListener('DOMContentLoaded', function () {
+            loadMyVote();
+            initChart();
+            loadAllData(true);
+            startAutoRefresh();
+        });
+
+        /* ===== ตัวช่วย ===== */
+        function val(id) { return document.getElementById(id).value.trim(); }
+        function esc(str) {
+            return String(str == null ? '' : str)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+        function showLoading(show) {
+            document.getElementById('loading-overlay').style.display = show ? 'flex' : 'none';
+        }
+
+        /* ===== รีเฟรชอัตโนมัติ ===== */
+        function startAutoRefresh() {
+            if (autoRefreshTimer) clearInterval(autoRefreshTimer);
+            autoRefreshTimer = setInterval(function () { loadAllData(false); }, 15000);
+        }
+        function manualRefresh() {
+            const icon = document.getElementById('refresh-icon');
+            if (icon) icon.classList.add('spin');
+            loadAllData(false);
+        }
+
+        /* ===== โหลดข้อมูลจากระบบหลังบ้าน ===== */
+        function loadAllData(showSpinner) {
+            if (showSpinner) showLoading(true);
+            callBackend('getInitData', null, onDataLoaded, onDataError);
+        }
+        function onDataLoaded(data) {
+            showLoading(false);
+            const icon = document.getElementById('refresh-icon');
+            if (icon) icon.classList.remove('spin');
+            database = (data && data.submissions) ? data.submissions : [];
+            matchingDatabase = (data && data.matching) ? data.matching : {};
+            updateLastUpdated();
+            updateDashboardStats();
+            renderDashboardFeed();
+            renderRanking();
+            if (!isEditorOpen) renderMatchingBoard();
+        }
+        function onDataError(err) {
+            showLoading(false);
+            const icon = document.getElementById('refresh-icon');
+            if (icon) icon.classList.remove('spin');
+            showToast('เชื่อมต่อไม่สำเร็จ', 'ดึงข้อมูลไม่ได้: ' + err, 'amber');
+        }
+        function updateLastUpdated() {
+            const el = document.getElementById('last-updated');
+            if (el) el.textContent = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' น.';
+        }
+
+        /* ===== สลับหน้า ===== */
+        function switchView(viewName) {
+            const views = { form: 'view-form', dashboard: 'view-dashboard', matching: 'view-matching' };
+            const btns = { form: 'btn-form-view', dashboard: 'btn-dashboard-view', matching: 'btn-matching-view' };
+            const defaultBtnClass = "px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition duration-200 text-slate-300 hover:text-white flex items-center space-x-1.5 flex-1 md:flex-initial justify-center whitespace-nowrap";
+            const activeBtnClass  = "px-3.5 py-1.5 rounded-lg text-xs md:text-sm font-semibold transition duration-200 bg-yellow-400 text-emerald-950 shadow flex items-center space-x-1.5 flex-1 md:flex-initial justify-center whitespace-nowrap";
+            Object.keys(views).forEach(function (k) {
+                document.getElementById(views[k]).classList.add('hidden');
+                document.getElementById(btns[k]).className = defaultBtnClass;
+            });
+            document.getElementById(views[viewName]).classList.remove('hidden');
+            document.getElementById(btns[viewName]).className = activeBtnClass;
+            if (viewName === 'dashboard') {
+                setTimeout(updateChartData, 100);
+                loadAllData(false);
+            } else if (viewName === 'matching') {
+                renderMatchingBoard();
+            }
+        }
+
+        /* ===== ส่งฟอร์ม (โหวต) ===== */
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            const topicEl = document.querySelector('input[name="priority_topic"]:checked');
+            if (!topicEl) {
+                showToast('แจ้งเตือน', 'กรุณาเลือกประเด็นที่เร่งด่วนที่สุด 1 ข้อ', 'amber');
+                return;
+            }
+            const payload = {
+                name:    val('reporter_name'),
+                agency:  val('agency'),
+                contact: val('contact'),
+                topic:   topicEl.value
+            };
+            if (isChangingVote && myVote && myVote.id) payload.id = myVote.id;
+
+            setSubmitting(true);
+            callBackend('submitForm', payload, function (res) {
+                setSubmitting(false);
+                const newId = (res && res.id) ? res.id : (myVote ? myVote.id : null);
+                const wasChange = !!payload.id;
+                saveMyVote({ id: newId, topic: payload.topic, name: payload.name, agency: payload.agency, contact: payload.contact });
+                isChangingVote = false;
+                document.getElementById('surveyForm').reset();
+                showVotedState();
+                showToast(wasChange ? 'เปลี่ยนคำตอบแล้ว' : 'ส่งข้อมูลเรียบร้อย', 'บันทึกการโหวตของท่านแล้ว กำลังพาไปดูผลรวม', 'success');
+                setTimeout(function () { switchView('dashboard'); loadAllData(false); }, 900);
+            }, function (err) {
+                setSubmitting(false);
+                showToast('ส่งไม่สำเร็จ', 'บันทึกข้อมูลไม่ได้: ' + err, 'amber');
+            });
+        }
+        function setSubmitting(isSubmitting) {
+            const btn = document.getElementById('submit-btn');
+            const icon = document.getElementById('submit-btn-icon');
+            const text = document.getElementById('submit-btn-text');
+            btn.disabled = isSubmitting;
+            if (isSubmitting) { icon.className = 'fa-solid fa-circle-notch spin'; text.textContent = 'กำลังส่งข้อมูล...'; }
+            else { icon.className = 'fa-solid fa-paper-plane'; text.textContent = 'ส่งข้อมูลเพื่อเข้าคลังวิเคราะห์'; }
+        }
+
+        /* ===== Toast ===== */
+        function showToast(title, message, type) {
+            type = type || 'success';
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-title').textContent = title;
+            document.getElementById('toast-msg').textContent = message;
+            const base = "fixed bottom-5 right-5 transform transition-all duration-300 px-5 py-3.5 rounded-xl shadow-2xl border flex items-center space-x-3 z-50 translate-y-0 opacity-100 ";
+            toast.className = base + (type === 'success' ? "bg-emerald-900 text-white border-emerald-700" : "bg-amber-600 text-white border-amber-500");
+            setTimeout(function () {
+                toast.className = toast.className.replace('translate-y-0 opacity-100', 'translate-y-20 opacity-0');
+            }, 3500);
+        }
+
+        /* ===== กราฟ ===== */
+        function initChart() {
+            const ctx = document.getElementById('priorityChart').getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: TOPIC_SHORT,
+                    datasets: [{
+                        label: 'จำนวนเสียงโหวต',
+                        data: [0, 0, 0, 0, 0],
+                        backgroundColor: TOPIC_COLORS,
+                        borderColor: TOPIC_BORDERS,
+                        borderWidth: 1.5,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { beginAtZero: true, ticks: { stepSize: 1, font: { family: 'Sarabun' } }, grid: { color: '#e2e8f0' } },
+                        y: { ticks: { font: { family: 'Sarabun', weight: 'bold' } }, grid: { display: false } }
+                    }
+                }
+            });
+
+            const dctx = document.getElementById('donutChart').getContext('2d');
+            donutInstance = new Chart(dctx, {
+                type: 'doughnut',
+                data: {
+                    labels: TOPIC_SHORT,
+                    datasets: [{ data: [0, 0, 0, 0, 0], backgroundColor: TOPIC_COLORS, borderColor: '#ffffff', borderWidth: 2 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, cutout: '58%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { family: 'Sarabun', size: 10 }, boxWidth: 12, padding: 8 } },
+                        tooltip: { callbacks: { label: function (c) {
+                            const total = c.dataset.data.reduce(function (a, b) { return a + b; }, 0);
+                            const pct = total ? Math.round(c.parsed / total * 100) : 0;
+                            return ' ' + c.label + ': ' + c.parsed + ' เสียง (' + pct + '%)';
+                        } } }
+                    }
+                }
+            });
+        }
+        function updateChartData() {
+            const counts = countByTopic();
+            const data = CORE_TOPICS.map(function (t) { return counts[t] || 0; });
+            if (chartInstance) { chartInstance.data.datasets[0].data = data; chartInstance.update(); }
+            if (donutInstance) { donutInstance.data.datasets[0].data = data; donutInstance.update(); }
+        }
+        function countByTopic() {
+            const counts = {};
+            CORE_TOPICS.forEach(function (t) { counts[t] = 0; });
+            database.forEach(function (item) { if (counts.hasOwnProperty(item.topic)) counts[item.topic]++; });
+            return counts;
+        }
+
+        /* ===== สถิติ ===== */
+        function updateDashboardStats() {
+            const total = database.length;
+            const uniqueAgencies = new Set(database.map(function (i) { return String(i.agency || '').trim(); }).filter(Boolean)).size;
+            let matchedCount = 0;
+            Object.keys(matchingDatabase).forEach(function (topic) {
+                const m = matchingDatabase[topic];
+                if (m && m.academic && String(m.academic).trim() !== '') matchedCount++;
+            });
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-agencies').textContent = uniqueAgencies;
+            document.getElementById('stat-matched').textContent = matchedCount;
+            const counts = countByTopic();
+            let topCategory = 'ยังไม่มีข้อมูล';
+            let maxVal = 0;
+            CORE_TOPICS.forEach(function (t) { if (counts[t] > maxVal) { maxVal = counts[t]; topCategory = t; } });
+            document.getElementById('stat-top').textContent = (maxVal > 0) ? topCategory : 'ยังไม่มีข้อมูล';
+            updateChartData();
+        }
+
+        /* ===== ฟีดผู้ร่วมโหวต ===== */
+        function renderDashboardFeed() {
+            const feed = document.getElementById('dashboard-feed-list');
+            feed.innerHTML = '';
+            if (database.length === 0) {
+                feed.innerHTML = '<div class="p-8 text-center text-slate-400 text-xs"><i class="fa-solid fa-folder-open text-3xl mb-1.5 block text-slate-300"></i><span>ขณะนี้ยังไม่มีผู้ร่วมโหวตเข้ามา</span></div>';
+                return;
+            }
+            let html = '';
+            database.forEach(function (item) {
+                const style = TOPIC_STYLE[item.topic] || { icon: 'fa-question', bg: 'bg-slate-50', text: 'text-slate-700', border: 'border-slate-200' };
+                const t = item.timestamp ? new Date(item.timestamp) : null;
+                const timeStr = (t && !isNaN(t)) ? (t.toLocaleString('th-TH', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) + ' น.') : '-';
+                html +=
+                    '<div class="p-3.5 bg-white hover:bg-slate-50 transition duration-100 flex items-center justify-between gap-3">' +
+                      '<div class="flex items-center gap-3 min-w-0">' +
+                        '<div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ' + style.bg + ' ' + style.text + '"><i class="fa-solid ' + style.icon + '"></i></div>' +
+                        '<div class="min-w-0">' +
+                          '<h4 class="font-bold text-slate-800 text-sm truncate"><i class="fa-solid fa-location-dot text-rose-500 mr-1"></i> ' + esc(item.agency) + '</h4>' +
+                          '<p class="text-[11px] text-slate-400 truncate">ตัวแทน: ' + esc(item.name) + ' · ติดต่อ: ' + esc(item.contact) + '</p>' +
+                        '</div>' +
+                      '</div>' +
+                      '<div class="text-right flex-shrink-0">' +
+                        '<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border ' + style.bg + ' ' + style.text + ' ' + style.border + ' inline-flex items-center"><i class="fa-solid ' + style.icon + ' mr-1"></i> ' + esc(item.topic) + '</span>' +
+                        '<p class="text-[10px] text-slate-400 font-medium mt-1"><i class="fa-solid fa-clock mr-1"></i> ' + timeStr + '</p>' +
+                      '</div>' +
+                    '</div>';
+            });
+            feed.innerHTML = html;
+        }
+
+        /* ===== PIN ===== */
+        function togglePinUnlock() {
+            if (isUnlocked) {
+                isUnlocked = false; authedPin = null;
+                showToast('ระบบถูกล็อก', 'ยกเลิกสิทธิ์การบันทึกบอร์ดเรียบร้อยแล้ว', 'amber');
+                updatePinStatusUi(); renderMatchingBoard();
+            } else {
+                document.getElementById('input-pin-code').value = '';
+                document.getElementById('pin-error-msg').classList.add('hidden');
+                document.getElementById('pin-modal').classList.remove('hidden');
+                setTimeout(function () { document.getElementById('input-pin-code').focus(); }, 100);
+            }
+        }
+        function closePinModal() { document.getElementById('pin-modal').classList.add('hidden'); }
+        function verifyPin() {
+            const entered = document.getElementById('input-pin-code').value;
+            const btn = document.getElementById('btn-verify-pin');
+            btn.disabled = true; btn.textContent = 'กำลังตรวจสอบ...';
+            
+            callBackend('verifyCommitteePin', { pin: entered }, function (ok) {
+                btn.disabled = false; btn.textContent = 'ยืนยันรหัสผ่าน';
+                if (ok) {
+                    isUnlocked = true; authedPin = entered;
+                    closePinModal();
+                    showToast('ปลดล็อกสำเร็จ', 'ท่านได้รับสิทธิ์คณะกรรมการในการบันทึก/แก้ไขข้อมูลจับคู่', 'success');
+                    updatePinStatusUi(); renderMatchingBoard();
+                } else {
+                    document.getElementById('pin-error-msg').classList.remove('hidden');
+                }
+            }, function (err) {
+                btn.disabled = false; btn.textContent = 'ยืนยันรหัสผ่าน';
+                showToast('ผิดพลาด', 'ตรวจสอบรหัสไม่สำเร็จ: ' + err, 'amber');
+            });
+        }
+        function updatePinStatusUi() {
+            const statusIcon = document.getElementById('pin-status-icon');
+            const statusText = document.getElementById('pin-status-text');
+            const btnIcon = document.getElementById('btn-pin-icon');
+            const btnText = document.getElementById('btn-pin-text');
+            const btnAuth = document.getElementById('btn-pin-auth');
+            if (isUnlocked) {
+                statusIcon.className = "w-10 h-10 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-lg";
+                statusIcon.innerHTML = '<i class="fa-solid fa-lock-open"></i>';
+                statusText.className = "text-xs text-emerald-600 font-bold mt-0.5";
+                statusText.innerHTML = '<i class="fa-solid fa-circle-check"></i> ได้รับสิทธิ์กรรมการ (แก้ไข/จับคู่ประเด็นได้)';
+                btnIcon.className = "fa-solid fa-user-lock";
+                btnText.textContent = "ล็อกระบบสิทธิ์กรรมการ";
+                btnAuth.className = "px-4 py-2 bg-slate-700 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow-sm transition flex items-center space-x-2";
+            } else {
+                statusIcon.className = "w-10 h-10 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center text-lg";
+                statusIcon.innerHTML = '<i class="fa-solid fa-lock"></i>';
+                statusText.className = "text-xs text-rose-600 font-semibold mt-0.5";
+                statusText.textContent = "กรุณาปลดล็อกเพื่อสิทธิ์สำหรับคณะกรรมการในการบันทึกข้อมูลจับคู่";
+                btnIcon.className = "fa-solid fa-key";
+                btnText.textContent = "กรอก PIN เพื่อปลดล็อก";
+                btnAuth.className = "px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-sm transition flex items-center space-x-2";
+            }
+        }
+
+        /* ===== บอร์ดจับคู่ ===== */
+        function renderMatchingBoard() {
+            const board = document.getElementById('matching-board-grid');
+            if (!board) return;
+            let html = '';
+            CORE_TOPICS.forEach(function (topic) {
+                const design = TOPIC_STYLE[topic];
+                const matchData = matchingDatabase[topic] || { academic: '', interested: '' };
+                const submissionCount = database.filter(function (i) { return i.topic === topic; }).length;
+                const isMatched = matchData.academic && String(matchData.academic).trim() !== '';
+                const academicHtml = isMatched ? esc(matchData.academic) : '<span class="text-slate-400 italic">ยังไม่ได้เชื่อมโยง — ปลดล็อก PIN แล้วกดแก้ไขเพื่อเพิ่มแนวทาง</span>';
+                const interestedHtml = (matchData.interested && String(matchData.interested).trim() !== '') ? esc(matchData.interested) : '<span class="text-slate-400 italic">ยังไม่ระบุ</span>';
+                html +=
+                    '<div class="bg-white rounded-2xl shadow-sm border-l-8 ' + design.cardBorder + ' border-t border-b border-r border-slate-200 overflow-hidden hover:shadow-md transition">' +
+                      '<div class="p-4 ' + design.header + ' flex flex-wrap gap-2 justify-between items-center border-b border-slate-100">' +
+                        '<span class="text-sm font-extrabold flex items-center gap-1.5"><i class="fa-solid ' + design.icon + ' text-base"></i> ' + esc(topic) + '</span>' +
+                        '<div class="flex items-center space-x-2">' +
+                          '<span class="bg-white/80 border border-slate-200 text-slate-700 font-bold text-[10px] px-2 py-1 rounded-lg"><i class="fa-solid fa-inbox mr-1"></i> พบโจทย์ชุมชน: ' + submissionCount + ' เรื่อง</span>' +
+                          (isMatched
+                            ? '<span class="bg-emerald-500 text-white font-bold text-[10px] px-2.5 py-1 rounded-lg shadow-sm"><i class="fa-solid fa-handshake mr-1"></i> จับคู่เสสิ้น</span>'
+                            : '<span class="bg-slate-200 text-slate-500 font-bold text-[10px] px-2.5 py-1 rounded-lg"><i class="fa-solid fa-hourglass-start mr-1"></i> รอเชื่อมโยง</span>') +
+                        '</div>' +
+                      '</div>' +
+                      '<div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">' +
+                        '<div class="space-y-2 bg-slate-50/50 p-4 rounded-xl border border-slate-100"><h4 class="font-extrabold text-slate-800 text-xs uppercase tracking-wide flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-600 mr-2"></span>แนวทางบริการวิชาการที่เชื่อมโยงได้:</h4><p class="text-slate-600 leading-relaxed font-semibold min-h-[40px]">' + academicHtml + '</p></div>' +
+                        '<div class="space-y-2 bg-slate-50/50 p-4 rounded-xl border border-slate-100"><h4 class="font-extrabold text-slate-800 text-xs uppercase tracking-wide flex items-center"><span class="w-2 h-2 rounded-full bg-blue-600 mr-2"></span>พื้นที่/หน่วยงานที่สนใจหลัก:</h4><p class="text-slate-600 leading-relaxed font-semibold min-h-[40px]">' + interestedHtml + '</p></div>' +
+                      '</div>' +
+                      '<div class="px-5 py-3.5 bg-slate-50 border-t border-slate-100 flex justify-end">' +
+                        (isUnlocked
+                          ? '<button onclick="openMatchEditor(\'' + encodeURIComponent(topic) + '\')" class="px-4 py-1.5 bg-yellow-400 hover:bg-yellow-500 text-emerald-950 font-bold text-[11px] rounded-lg shadow-sm transition flex items-center space-x-1.5"><i class="fa-solid fa-pen-to-square mr-1"></i> <span>แก้ไขการจับคู่เชิงวิชาการ</span></button>'
+                          : '<button onclick="notifyLockedAction()" class="px-4 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-500 font-bold text-[11px] rounded-lg transition flex items-center space-x-1.5"><i class="fa-solid fa-lock mr-1"></i> <span>ต้องปลดล็อก PIN เพื่อแก้ไข</span></button>') +
+                      '</div>' +
+                    '</div>';
+            });
+            board.innerHTML = html;
+        }
+        function notifyLockedAction() {
+            showToast('ระบบยังไม่ได้ปลดล็อก', 'โปรดเลื่อนขึ้นด้านบน แล้วใช้ PIN เพื่อเข้าสู่โหมดกรรมการก่อน', 'amber');
+        }
+
+        /* ===== Modal จับคู่ + ทำเนียบผู้เลือกประเด็น ===== */
+        function openMatchEditor(topicEncoded) {
+            const topicName = decodeURIComponent(topicEncoded);
+            selectedTopicToEdit = topicName;
+            isEditorOpen = true;
+            document.getElementById('modal-topic-title').textContent = 'จับคู่ร่วม: ประเด็น ' + topicName;
+            const matchData = matchingDatabase[topicName] || { academic: '', interested: '' };
+            document.getElementById('edit-academic-solution').value = matchData.academic || '';
+            document.getElementById('edit-interested-areas').value = matchData.interested || '';
+            renderModalContextPreviews(topicName);
+            document.getElementById('match-editor-modal').classList.remove('hidden');
+        }
+        function renderModalContextPreviews(topicName) {
+            const container = document.getElementById('modal-preview-list-container');
+            const countBadge = document.getElementById('modal-preview-count');
+            container.innerHTML = '';
+            const matchingSubmissions = database.filter(function (i) { return i.topic === topicName; });
+            countBadge.textContent = matchingSubmissions.length + ' พื้นที่เลือกประเด็นนี้';
+            if (matchingSubmissions.length === 0) {
+                container.innerHTML = '<div class="p-10 text-center text-slate-400 bg-white rounded-xl border border-dashed border-slate-300"><i class="fa-solid fa-user-slash text-3xl mb-2 block text-slate-300"></i><span class="text-xs font-bold text-slate-500">ยังไม่มีพื้นที่ใดเลือกประเด็น "' + esc(topicName) + '"</span><p class="text-[10px] text-slate-400 mt-1">เมื่อมีผู้โหวตประเด็นนี้ รายชื่อจะปรากฏที่นี่อัตโนมัติ</p></div>';
+                return;
+            }
+            let html = '';
+            matchingSubmissions.forEach(function (item) {
+                const t = item.timestamp ? new Date(item.timestamp) : null;
+                const dateStr = (t && !isNaN(t)) ? (t.toLocaleString('th-TH', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) + ' น.') : '-';
+                html +=
+                    '<div class="bg-white p-3.5 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between gap-3 hover:border-slate-300 transition">' +
+                      '<div class="flex items-center gap-3 min-w-0">' +
+                        '<div class="w-9 h-9 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-circle-user"></i></div>' +
+                        '<div class="min-w-0">' +
+                          '<span class="font-extrabold text-xs text-slate-800 block truncate">' + esc(item.agency) + '</span>' +
+                          '<span class="text-[11px] text-slate-500 block truncate">ผู้ประสานงาน: ' + esc(item.name) + '</span>' +
+                        '</div>' +
+                      '</div>' +
+                      '<div class="text-right flex-shrink-0">' +
+                        '<span class="text-[11px] font-bold text-emerald-700 block"><i class="fa-solid fa-address-card mr-1"></i>' + esc(item.contact) + '</span>' +
+                        '<span class="text-[10px] text-slate-400">' + dateStr + '</span>' +
+                      '</div>' +
+                    '</div>';
+            });
+            container.innerHTML = html;
+        }
+        function closeMatchEditorModal() {
+            document.getElementById('match-editor-modal').classList.add('hidden');
+            selectedTopicToEdit = null;
+            isEditorOpen = false;
+        }
+        function saveMatch() {
+            const academicInput = val('edit-academic-solution');
+            const interestedInput = val('edit-interested-areas');
+            if (!academicInput || !interestedInput) {
+                showToast('แจ้งเตือน', 'กรุณาระบุทั้งแนวทางบริการวิชาการ และหน่วยงานที่เกี่ยวข้อง', 'amber');
+                return;
+            }
+            if (!selectedTopicToEdit) return;
+            setSavingMatch(true);
+
+            const matchPayload = {
+                pin: authedPin,
+                topic: selectedTopicToEdit,
+                academicRoute: academicInput,
+                targetAgencies: interestedInput
+            };
+
+            callBackend('saveMatching', matchPayload, function (res) {
+                setSavingMatch(false);
+                if (res && res.success) {
+                    matchingDatabase[selectedTopicToEdit] = { academic: academicInput, interested: interestedInput };
+                    const savedTopic = selectedTopicToEdit;
+                    renderMatchingBoard(); updateDashboardStats();
+                    closeMatchEditorModal();
+                    showToast('จับคู่เรียบร้อย', 'บันทึกแนวทางประเด็น "' + savedTopic + '" สำเร็จ', 'success');
+                    loadAllData(false);
+                } else {
+                    showToast('บันทึกไม่สำเร็จ', (res && res.message) ? res.message : 'โปรดตรวจสอบรหัส PIN อีกครั้ง', 'amber');
+                }
+            }, function (err) {
+                setSavingMatch(false);
+                showToast('ผิดพลาด', 'บันทึกไม่ได้: ' + err, 'amber');
+            });
+        }
+        function setSavingMatch(isSaving) {
+            const btn = document.getElementById('btn-save-match');
+            const icon = document.getElementById('save-match-icon');
+            const text = document.getElementById('save-match-text');
+            btn.disabled = isSaving;
+            if (isSaving) { icon.className = 'fa-solid fa-circle-notch spin'; text.textContent = 'กำลังบันทึก...'; }
+            else { icon.className = 'fa-solid fa-floppy-disk'; text.textContent = 'บันทึกแผนจับคู่'; }
+        }
+
+        /* ===== อันดับสด (Live Ranking) ===== */
+        function getRanking() {
+            const counts = countByTopic();
+            const total = database.length;
+            const arr = CORE_TOPICS.map(function (t, idx) {
+                const c = counts[t] || 0;
+                return { topic: t, count: c, idx: idx, pct: total ? Math.round(c / total * 100) : 0 };
+            });
+            arr.sort(function (a, b) { return b.count - a.count; });
+            return { arr: arr, total: total };
+        }
+        function renderRanking() {
+            const box = document.getElementById('ranking-list');
+            if (!box) return;
+            const r = getRanking();
+            let html = '';
+            r.arr.forEach(function (it, rank) {
+                const st = TOPIC_STYLE[it.topic];
+                const isTop = (rank === 0 && it.count > 0);
+                html +=
+                    '<div class="rounded-xl border p-3 flex flex-col ' + (isTop ? 'border-amber-400 bg-amber-50 shadow-sm ring-1 ring-amber-300' : 'border-slate-200 bg-slate-50/50') + '">' +
+                      '<div class="flex items-center justify-between mb-1.5">' +
+                        '<span class="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-extrabold ' + (isTop ? 'bg-amber-400 text-emerald-950' : 'bg-slate-200 text-slate-600') + '">' + (rank + 1) + '</span>' +
+                        '<div class="w-7 h-7 rounded-lg flex items-center justify-center ' + st.bg + ' ' + st.text + '"><i class="fa-solid ' + st.icon + ' text-xs"></i></div>' +
+                      '</div>' +
+                      '<p class="text-[11px] font-bold text-slate-700 leading-tight min-h-[28px]">' + esc(it.topic) + '</p>' +
+                      '<div class="flex items-end justify-between mt-1.5">' +
+                        '<span class="text-lg font-extrabold text-slate-800">' + it.count + '<span class="text-[10px] font-medium text-slate-400"> เสียง</span></span>' +
+                        '<span class="text-sm font-bold ' + (isTop ? 'text-amber-600' : 'text-slate-500') + '">' + it.pct + '%</span>' +
+                      '</div>' +
+                      '<div class="w-full bg-slate-200 rounded-full h-1.5 mt-1.5 overflow-hidden"><div class="h-full rounded-full" style="width:' + it.pct + '%;background:' + TOPIC_COLORS[it.idx] + '"></div></div>' +
+                    '</div>';
+            });
+            box.innerHTML = html;
+        }
+
+        /* ===== เฉลยผลปิดเวที (เต็มจอ) ===== */
+        function openResultsReveal() {
+            const r = getRanking();
+            const uniqueAgencies = new Set(database.map(function (i) { return String(i.agency || '').trim(); }).filter(Boolean)).size;
+            document.getElementById('results-subtitle').textContent = 'จากผู้ร่วมโหวตทั้งหมด ' + r.total + ' คน · ' + uniqueAgencies + ' พื้นที่/หน่วยงาน';
+            let html = '';
+            if (r.total === 0) {
+                html = '<div class="text-center text-emerald-300 py-10"><i class="fa-solid fa-inbox text-4xl mb-2 block"></i>ยังไม่มีผู้ร่วมโหวต</div>';
+            } else {
+                r.arr.forEach(function (it, rank) {
+                    const st = TOPIC_STYLE[it.topic];
+                    if (rank === 0 && it.count > 0) {
+                        html +=
+                            '<div class="bg-yellow-400 text-emerald-950 rounded-2xl p-5 shadow-lg flex items-center gap-4">' +
+                              '<div class="w-12 h-12 rounded-xl bg-emerald-950/10 flex items-center justify-center text-2xl flex-shrink-0"><i class="fa-solid ' + st.icon + '"></i></div>' +
+                              '<div class="flex-grow min-w-0">' +
+                                '<p class="text-[11px] font-bold uppercase tracking-wider opacity-70"><i class="fa-solid fa-crown mr-1"></i>ประเด็นเร่งด่วนอันดับ 1</p>' +
+                                '<p class="text-xl md:text-2xl font-extrabold leading-tight">' + esc(it.topic) + '</p>' +
+                              '</div>' +
+                              '<div class="text-right flex-shrink-0"><p class="text-3xl font-extrabold">' + it.pct + '%</p><p class="text-xs font-bold">' + it.count + ' เสียง</p></div>' +
+                            '</div>';
+                    } else {
+                        html +=
+                            '<div class="bg-emerald-900/60 border border-emerald-800 rounded-xl p-3.5 flex items-center gap-3">' +
+                              '<span class="w-7 h-7 rounded-full bg-emerald-800 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">' + (rank + 1) + '</span>' +
+                              '<div class="w-9 h-9 rounded-lg bg-emerald-950/50 text-yellow-300 flex items-center justify-center flex-shrink-0"><i class="fa-solid ' + st.icon + '"></i></div>' +
+                              '<p class="flex-grow font-bold text-sm min-w-0 truncate">' + esc(it.topic) + '</p>' +
+                              '<div class="text-right flex-shrink-0"><span class="text-lg font-extrabold">' + it.pct + '%</span><span class="text-emerald-300 text-xs ml-2">' + it.count + ' เสียง</span></div>' +
+                            '</div>';
+                    }
+                });
+            }
+            document.getElementById('results-content').innerHTML = html;
+            document.getElementById('results-modal').classList.remove('hidden');
+        }
+        function closeResultsReveal() {
+            document.getElementById('results-modal').classList.add('hidden');
+        }
+
+        /* ===== จำการโหวตในเครื่อง ===== */
+        function loadMyVote() {
+            try {
+                const raw = localStorage.getItem(VOTE_STORAGE_KEY);
+                myVote = raw ? JSON.parse(raw) : null;
+            } catch (e) { myVote = null; }
+            if (myVote) showVotedState(); else showFormState();
+        }
+        function saveMyVote(vote) {
+            myVote = vote;
+            try { localStorage.setItem(VOTE_STORAGE_KEY, JSON.stringify(vote)); } catch (e) {}
+        }
+        function showVotedState() {
+            if (!myVote) return;
+            const st = TOPIC_STYLE[myVote.topic] || { icon: 'fa-circle-check', bg: 'bg-emerald-100', text: 'text-emerald-700' };
+            const badge = document.getElementById('voted-topic-badge');
+            badge.className = 'inline-flex items-center gap-2 mt-2 px-4 py-2 rounded-xl font-bold text-sm ' + st.bg + ' ' + st.text;
+            badge.innerHTML = '<i class="fa-solid ' + st.icon + '"></i> ' + esc(myVote.topic);
+            document.getElementById('voted-panel').classList.remove('hidden');
+            document.getElementById('survey-card').classList.add('hidden');
+        }
+        function showFormState() {
+            document.getElementById('voted-panel').classList.add('hidden');
+            document.getElementById('survey-card').classList.remove('hidden');
+        }
+        function startChangeVote() {
+            isChangingVote = true;
+            showFormState();
+            if (myVote) {
+                document.getElementById('reporter_name').value = myVote.name || '';
+                document.getElementById('agency').value = myVote.agency || '';
+                document.getElementById('contact').value = myVote.contact || '';
+                const radios = document.querySelectorAll('input[name="priority_topic"]');
+                radios.forEach(function (rb) { rb.checked = (rb.value === myVote.topic); });
+            }
+            document.getElementById('survey-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    </script>
+</body>
+</html>
